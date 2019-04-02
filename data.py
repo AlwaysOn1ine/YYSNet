@@ -31,7 +31,40 @@ def read_image(train_path, label_path, batch_size):
 
     X, Y = tf.train.batch([image, label], batch_size=batch_size, num_threads=4, capacity=batch_size * 8)
 
-    print(Y)
+    return X, Y
     # labels = tf.one_hot()
     
+
+if __name__ == "__main__":
+    imageLists = []
+    labels = []
+    for i in range(20):
+        imageLists.append(i)
+        labels.append(19 - i)
+    
+    imageLists = tf.convert_to_tensor(imageLists, tf.int32)
+    labels = tf.convert_to_tensor(labels, tf.int32)
+
+    imageList, label = tf.train.slice_input_producer([imageLists, labels], shuffle=True)
+
+    X, Y = tf.train.batch([imageList, label], batch_size=2, num_threads=4, capacity=16)
+
+
+    try:
+        with tf.Session() as sess:
+                sess.run(tf.global_variables_initializer())
+                sess.run(tf.local_variables_initializer())
+                coor = tf.train.Coordinator()
+                tf.train.start_queue_runners(sess, coor)
+                while not coor.should_stop():
+                        i, l = sess.run([X, Y])
+                        print(i)
+                        print(l)
+                        print("batch info")
+    except TypeError:
+            print("done")
+    finally:
+            coor.request_stop()
+
+
 
