@@ -3,8 +3,9 @@ import numpy as np
 import os
 from data import read_image
 
+BATCH_SIZE = 20
 CLASS_COUNT = 293
-EPOCH = 1
+EPOCH = 2000
 
 def weight_variable(shape):
     init = tf.truncated_normal(shape, stddev=0.1)
@@ -20,6 +21,10 @@ def conv_2d(x, W):
 def max_pooling2x2(x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
+def inference(img_path):
+    image, label = read_image(img_path, 0)
+
+
 if __name__ == "__main__":
     root, dirs, files = os.walk('./dataset/train_data/').__next__()
     files = [root + file for file in files]
@@ -34,7 +39,7 @@ if __name__ == "__main__":
 
     dataset1 = dataset.batch(batch_size=CLASS_COUNT)
 
-    dataset = dataset.batch(batch_size=20)
+    dataset = dataset.batch(batch_size=BATCH_SIZE)
 
     dataset = dataset.repeat()
 
@@ -84,16 +89,16 @@ if __name__ == "__main__":
     cross_entropy = - tf.reduce_sum(y_ * tf.log(y_conv))
     train_step = tf.train.AdamOptimizer().minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-    accuracy = tf.reduce_sum(tf.cast(correct_prediction, "float"))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for i in range(EPOCH):
-            print(i)
             batch = sess.run(next_data)
             sess.run(train_step, feed_dict={x : batch[0], y_ : batch[1], keep_prob : 0.5})
+            print("train accuracy:%f" % sess.run(accuracy, feed_dict={x : batch[0], y_ : batch[1], keep_prob : 1.0}))
         saver.save(sess, "./model/yysnet%d" % EPOCH)
         data_1 = dataset1.make_one_shot_iterator()
         next_data_1 = data_1.get_next()
