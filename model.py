@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
-from data import read_image
+from data import *
 
 BATCH_SIZE = 20
 CLASS_COUNT = 293
@@ -98,6 +98,7 @@ if __name__ == "__main__":
         for i in range(EPOCH):
             batch = sess.run(next_data)
             sess.run(train_step, feed_dict={x : batch[0], y_ : batch[1], keep_prob : 0.5})
+            # print("loss: %f" % sess.run(cross_entropy))
             print("train accuracy:%f" % sess.run(accuracy, feed_dict={x : batch[0], y_ : batch[1], keep_prob : 1.0}))
         saver.save(sess, "./model/yysnet%d" % EPOCH)
         data_1 = dataset1.make_one_shot_iterator()
